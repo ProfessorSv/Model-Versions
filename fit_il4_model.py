@@ -1,4 +1,7 @@
 # ================  fit_il4_model.py  =================
+import sys
+sys.stdout.reconfigure(encoding='utf-8')
+
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -6,7 +9,7 @@ from scipy.integrate import solve_ivp
 from scipy.optimize import least_squares
 
 # 1) Load the IL‑4 data
-data    = pd.read_csv(r'C:\Users\celal\Desktop\Python\Model Versions\il4_hdm.csv')
+data    = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il4_hdm.csv')
 t_data  = data['time'].values    # [2, 4, 8, 24]
 y_data  = data['il4'].values     # [50, 90, 55, 20]
 
