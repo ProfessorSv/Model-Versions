@@ -6,10 +6,10 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp       # ODE solver
 from scipy.optimize import least_squares    # non-linear fitting
 
-# 1) Load IL-5 data and normalise to peak = 1
-data         = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il5_hdm.csv')
+# 1) Load IL-13 data and normalise to peak = 1
+data         = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il13_hdm.csv')
 t_data       = data['time'].values        # [0, 2, 4, 8, 24] hours post-challenge
-y_data       = data['il5'].values         # corresponding IL-5 concentrations (pg/ml)
+y_data       = data['il13'].values         # corresponding IL-13 concentrations (pg/ml)
 y_data_norm  = y_data / np.max(y_data)    # scale so the highest point = 1
 
 # 2) Define the core Engram-Immune ODE system (x,y,z,u)
@@ -94,11 +94,11 @@ y_fit_norm = simulate_core(
 ))
 
 plt.figure(figsize=(6,4))
-plt.plot(t_data, y_data_norm, 'o-', label='IL-5 Data (normalised)')
+plt.plot(t_data, y_data_norm, 'o-', label='IL-13 Data (normalised)')
 plt.plot(t_data, y_fit_norm, 's--', label='EIM Fit (normalised)')
 plt.xlabel('Time (h post-challenge)')
-plt.ylabel('Normalised IL-5')
-plt.title('Normalized Shape Fit of EIM (IL-5 vs y(t))')
+plt.ylabel('Normalised IL-13')
+plt.title('Normalized Shape Fit of EIM (IL-13 vs y(t))')
 plt.legend(); plt.tight_layout(); plt.show()
 
 # 8) Plot residuals to check for systematic deviations
