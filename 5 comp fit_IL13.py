@@ -7,7 +7,7 @@ from scipy.integrate import solve_ivp       # ODE solver
 from scipy.optimize import least_squares    # non-linear fitting
 
 # 1) Load IL-13 data and normalise to peak = 1
-data         = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il13_hdm.csv')
+data         = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\il13_hdm.csv')
 t_data       = data['time'].values        # [0, 2, 4, 8, 24] hours post-challenge
 y_data       = data['il13'].values         # corresponding IL-13 concentrations (pg/ml)
 y_data_norm  = y_data / np.max(y_data)    # scale so the highest point = 1
