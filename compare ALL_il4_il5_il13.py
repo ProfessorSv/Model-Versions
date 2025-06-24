@@ -70,7 +70,7 @@ def residuals(params_vec, y_norm, t_data):
 #Divide by the maximum of the post‐baseline data so each dataset’s peak is 1.
 
 # IL-4
-data_il4     = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il4_hdm.csv')
+data_il4     = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\il4_hdm.csv')
 t_data_il4   = data_il4['time'].values
 y_raw_il4    = data_il4['il4'].values
 baseline_il4 = y_raw_il4[0]
@@ -81,7 +81,7 @@ y_norm_il4   = y_adj_il4 / np.max(y_adj_il4)
 
 
 # IL-5
-data_il5     = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il5_hdm.csv')
+data_il5     = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\il5_hdm.csv')
 t_data_il5   = data_il5['time'].values
 y_raw_il5    = data_il5['il5'].values
 baseline_il5 = y_raw_il5[0]
@@ -90,7 +90,7 @@ y_adj_il5[y_adj_il5 < 0] = 0
 y_norm_il5   = y_adj_il5 / np.max(y_adj_il5)
 
 # IL-13
-data_il13     = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il13_hdm.csv')
+data_il13     = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\il13_hdm.csv')
 t_data_il13   = data_il13['time'].values
 y_raw_il13    = data_il13['il13'].values
 baseline_il13 = y_raw_il13[0]
@@ -101,7 +101,7 @@ y_norm_il13   = y_adj_il13 / np.max(y_adj_il13)
 # IFN-γ
 # Load and normalize IFN-γ data
 # (Assumes your IFN-y_hdm.csv has columns: time, IFN-γ)
-data_ifng     = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\IFN-y_hdm.csv')
+data_ifng     = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\IFN-y_hdm.csv')
 t_data_ifng   = data_ifng['time'].values
 y_raw_ifng    = data_ifng['IFN-γ'].values
 baseline_ifng = y_raw_ifng[0]

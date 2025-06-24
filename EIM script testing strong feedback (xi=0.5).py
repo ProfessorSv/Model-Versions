@@ -1,9 +1,10 @@
 # =============================================================================
 #
-#  Final Script for VNS Analysis:
+#  Final Script for VNS Analysis (Strong Feedback Test):
 #  - Part 1: Calibrates the model to IL-4 data.
-#  - Part 2: Generates plots to diagnose the "runaway engram" effect.
-#  - Part 3: Runs and plots the sensitivity analysis on feedback strength (xi).
+#  - Part 2: Compares the baseline simulation (weak feedback, no VNS) against
+#    a VNS simulation with STRONG feedback (xi = 0.5) to see if the
+#    "runaway engram" effect is resolved.
 #
 # =============================================================================
 
@@ -13,7 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.integrate import solve_ivp
 from scipy.optimize import least_squares
 from scipy.interpolate import PchipInterpolator
-from numpy import trapezoid
+from numpy import trapz
 
 # =============================================================================
 #  PART 1: CALIBRATE MODEL TO IL-4 DATA
@@ -73,15 +74,15 @@ res_shape = least_squares(residuals_shape, initial_guess, bounds=bounds)
 δ_fit, Λ1_fit, Λ2_fit, u0_fit = res_shape.x
 params_fitted = params_base.copy()
 params_fitted.update({'delta': δ_fit, 'Lambda1': Λ1_fit, 'Lambda2': Λ2_fit})
-params_fitted['xi'] = params_base['xi'] # Ensure baseline xi is set
+print(f"Fitted Parameters → δ = {δ_fit:.4f}, Λ₁ = {Λ1_fit:.4f}, Λ₂ = {Λ2_fit:.4f}, u₀ = {u0_fit:.2f}")
 
 # =============================================================================
-#  PART 2: DIAGNOSING THE "RUNAWAY ENGRAM" EFFECT
+#  PART 2: VISUALIZE VNS EFFECT WITH STRONG FEEDBACK
 # =============================================================================
 
-print("\n--- Starting Part 2: Diagnosing the 'Runaway Engram' Effect ---")
+print("\n--- Starting Part 2: Comparing Baseline vs. VNS with Strong Feedback ---")
 
-# 1) Define VNS-enabled ODEs and v(t) template
+# 1) Define VNS-enabled ODEs and v(t) template (using sustained suppression)
 days = np.array([0, 42, 84])
 suppression_norm = np.array([0.0, 1.0, 1.0])
 hours = days * 24
@@ -98,74 +99,42 @@ def EIM_vagal(t, state, p, mu):
     dudt = -(y_ + p['y0']) * (u_ + p['zeta2'] * u_**p['beta']) + p['Gamma'] * u_
     return [dxdt, dydt, dzdt, dudt]
 
-# 2) Run Baseline vs. VNS (with weak feedback)
+# 2) Set up simulation parameters
 t_start, t_end = 0, 100
 t_eval = np.linspace(t_start, t_end, 500)
 initial_state = [0, 0, 0, u0_fit]
 
-sol_baseline = solve_ivp(EIM_vagal, (t_start, t_end), initial_state, args=(params_fitted, 0.0), t_eval=t_eval)
-sol_vns_weak_feedback = solve_ivp(EIM_vagal, (t_start, t_end), initial_state, args=(params_fitted, 0.9), t_eval=t_eval)
+# 3) Run Baseline (weak feedback, no VNS)
+params_baseline = params_fitted.copy()
+params_baseline['xi'] = 0.2
+sol_baseline = solve_ivp(EIM_vagal, (t_start, t_end), initial_state, args=(params_baseline, 0.0), t_eval=t_eval)
 
-# 3) Create Figure 1: The Runaway Engram Effect
+# 4) Run VNS with Strong Feedback
+params_vns_strong = params_fitted.copy()
+params_vns_strong['xi'] = 0.5 # Use the "sweet spot" value for feedback
+mu_vns = 0.9
+sol_vns_strong_feedback = solve_ivp(EIM_vagal, (t_start, t_end), initial_state, args=(params_vns_strong, mu_vns), t_eval=t_eval)
+
+# 5) Create the comparison figure
 fig, axs = plt.subplots(3, 1, figsize=(8, 12), sharex=True)
-fig.suptitle('Diagnosing the "Runaway Engram" Effect of VNS', fontsize=16)
+fig.suptitle('VNS with Strong Feedback Prevents the "Runaway Engram"', fontsize=16)
 
 # Plot y(t) - Immune Response
-axs[0].plot(sol_baseline.t, sol_baseline.y[1], label='Baseline (μ=0)', lw=2.5)
-axs[0].plot(sol_vns_weak_feedback.t, sol_vns_weak_feedback.y[1], label='VNS (μ=0.9, weak feedback)', lw=2.5, linestyle='--')
-axs[0].set_title('Immune Response'); axs[0].set_ylabel('y(t)'); axs[0].legend(); axs[0].grid(True, linestyle=':')
+axs[0].plot(sol_baseline.t, sol_baseline.y[1], label='Baseline (ξ=0.2)', lw=2.5)
+axs[0].plot(sol_vns_strong_feedback.t, sol_vns_strong_feedback.y[1], label='VNS with Strong Feedback (ξ=0.5)', lw=2.5, linestyle='--')
+axs[0].set_title('A) Immune Response is Effectively Suppressed'); axs[0].set_ylabel('Immune Response y(t)'); axs[0].legend(); axs[0].grid(True, linestyle=':')
 
 # Plot x(t) - Engram Signal
 axs[1].plot(sol_baseline.t, sol_baseline.y[0], label='Baseline', lw=2.5)
-axs[1].plot(sol_vns_weak_feedback.t, sol_vns_weak_feedback.y[0], label='VNS (weak feedback)', lw=2.5, linestyle='--')
-axs[1].set_title('Engram Signal'); axs[1].set_ylabel('x(t)'); axs[1].legend(); axs[1].grid(True, linestyle=':')
+axs[1].plot(sol_vns_strong_feedback.t, sol_vns_strong_feedback.y[0], label='VNS with Strong Feedback', lw=2.5, linestyle='--')
+axs[1].set_title('B) Engram Signal is Controlled and Resolves'); axs[1].set_ylabel('Engram x(t)'); axs[1].legend(); axs[1].grid(True, linestyle=':')
 
 # Plot z(t) - Feedback Signal
 axs[2].plot(sol_baseline.t, sol_baseline.y[2], label='Baseline', lw=2.5)
-axs[2].plot(sol_vns_weak_feedback.t, sol_vns_weak_feedback.y[2], label='VNS (weak feedback)', lw=2.5, linestyle='--')
-axs[2].set_title('Inhibitory Feedback'); axs[2].set_xlabel('Time (hours)'); axs[2].set_ylabel('z(t)'); axs[2].legend(); axs[2].grid(True, linestyle=':')
+axs[2].plot(sol_vns_strong_feedback.t, sol_vns_strong_feedback.y[2], label='VNS with Strong Feedback', lw=2.5, linestyle='--')
+axs[2].set_title('C) Feedback Signal Remains Effective'); axs[2].set_xlabel('Time (hours)'); axs[2].set_ylabel('Feedback z(t)'); axs[2].legend(); axs[2].grid(True, linestyle=':')
 
 plt.tight_layout(rect=[0, 0.03, 1, 0.96])
+plt.savefig("figure3_strong_feedback_resolution.png", dpi=300, bbox_inches='tight')
 plt.show()
 
-
-# =============================================================================
-#  PART 3: SENSITIVITY ANALYSIS OF FEEDBACK STRENGTH (xi)
-# =============================================================================
-
-print("\n--- Starting Part 3: Testing the Feedback Strength Hypothesis ---")
-
-# 1) Set up and run simulations in a loop for different xi values
-mu_fixed = 0.9
-xi_values = np.linspace(0.2, 1.0, 9)
-results = []
-auc_base = trapezoid(sol_baseline.y[1], sol_baseline.t)
-
-for xi in xi_values:
-    params_current = params_fitted.copy()
-    params_current['xi'] = xi
-    sol_vns = solve_ivp(EIM_vagal, (t_start, t_end), initial_state, args=(params_current, mu_fixed), t_eval=t_eval)
-    auc_vns = trapezoid(sol_vns.y[1], sol_vns.t)
-    auc_suppression = 100 * (1 - auc_vns / auc_base) if auc_base > 0 else 0
-    results.append({'xi': xi, 'auc_supp': auc_suppression})
-
-# 2) Create Figure 2: The Sensitivity Plot
-results_df = pd.DataFrame(results)
-plt.figure(figsize=(8, 6))
-plt.plot(results_df['xi'], results_df['auc_supp'], 'o-', lw=2.5, markersize=8)
-plt.axhline(0, color='black', linestyle='--', lw=1)
-plt.title('VNS Efficacy vs. Feedback Strength', fontsize=16)
-plt.xlabel('Feedback Strength (ξ)', fontsize=12)
-plt.ylabel('Total Suppression (AUC %)', fontsize=12)
-plt.grid(True, linestyle=':')
-plt.show()
-
-# 3) Print summary table to terminal
-print("\n" + "="*50)
-print(" " * 8 + "FEEDBACK SENSITIVITY ANALYSIS SUMMARY")
-print("="*50)
-print(f"{'Feedback Strength (ξ)':<25} | {'AUC Suppression (%)':<25}")
-print("-" * 50)
-for res in results:
-    print(f"{res['xi']:<25.2f} | {res['auc_supp']:<25.1f}")
-print("="*50)
