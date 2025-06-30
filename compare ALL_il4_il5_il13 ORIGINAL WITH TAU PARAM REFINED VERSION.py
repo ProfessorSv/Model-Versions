@@ -151,51 +151,40 @@ def load_and_normalize_data(filepath: str, cytokine_col: str) -> Tuple[np.ndarra
 def fit_model_to_cytokine_data(t_data: np.ndarray, y_norm: np.ndarray) -> Dict[str, Any]:
     """
     Runs the full fitting pipeline for a single cytokine dataset.
-    Now matches the 'Improved IL-4 EIM fit Publication Quality' approach:
-    - Fits only [δ, Λ1, Λ2, κ, u0] (tau fixed at 1.0)
-    - Returns metrics and normalized fit
     """
-    # Parameters: [δ, Λ1, Λ2, κ, u0]
-    init_guess = [0.3, 0.05, 0.04, 0.2, 1.0]
-    bounds = ([0, 0, 0, 0, 0], [np.inf, np.inf, np.inf, np.inf, np.inf])
-
-    def residuals_shape(params_to_fit, t_points, y_target):
-        δ, Λ1, Λ2, κ_val, u0 = params_to_fit
-        p = PARAMS_BASE.copy()
-        p.update(delta=δ, Lambda1=Λ1, Lambda2=Λ2, kappa=κ_val, tau=1.0)  # tau fixed
-        y_pred = simulate_model(p, u0, t_points)
-        max_pred = np.max(y_pred)
-        if max_pred < 1e-9:
-            y_pred_norm = y_pred
-        else:
-            y_pred_norm = y_pred / max_pred
-        return y_pred_norm - y_target
+    # Initial guesses and bounds for the parameters to be fitted
+    # Parameters: [δ, Λ1, Λ2, κ, u0, τ]
+    init_guess = [0.3, 0.05, 0.04, 0.2, 1.0, 1.0]
+    bounds = ([0, 0, 0, 0, 0, 0.1], [np.inf, np.inf, np.inf, np.inf, np.inf, 10])
 
     # Perform non-linear least squares fitting
     fit_result = least_squares(
-        residuals_shape,
+        residuals_for_fitting,
         init_guess,
         bounds=bounds,
-        args=(t_data, y_norm)
+        args=(y_norm, t_data)
     )
-
-    δ_fit, Λ1_fit, Λ2_fit, κ_fit, u0_fit = fit_result.x
-
+    
+    # Unpack fitted parameters
+    δ_fit, Λ1_fit, Λ2_fit, κ_fit, u0_fit, τ_fit = fit_result.x
+    
     # Simulate the model one last time with the best-fit parameters
-    p_fit = {**PARAMS_BASE, 'delta': δ_fit, 'Lambda1': Λ1_fit, 'Lambda2': Λ2_fit, 'kappa': κ_fit, 'tau': 1.0}
+    p_fit = {**PARAMS_BASE, 'delta': δ_fit, 'Lambda1': Λ1_fit, 'Lambda2': Λ2_fit, 'kappa': κ_fit, 'tau': τ_fit}
     y_fit_raw = simulate_model(p_fit, u0_fit, t_data)
+    
+    # Normalize the final fitted curve
     y_fit_norm = y_fit_raw / np.max(y_fit_raw)
-
+    
     # Calculate goodness-of-fit metrics
     residuals = y_fit_norm - y_norm
     rmse = np.sqrt(np.mean(residuals**2))
     ss_res = np.sum(residuals**2)
     ss_tot = np.sum((y_norm - np.mean(y_norm))**2)
     r_squared = 1 - (ss_res / ss_tot) if ss_tot > 0 else 0
-
+    
     # Return all results in a structured dictionary
     return {
-        "params": [δ_fit, Λ1_fit, Λ2_fit, κ_fit, u0_fit],
+        "params": [δ_fit, Λ1_fit, Λ2_fit, κ_fit, u0_fit, τ_fit],
         "metrics": [rmse, r_squared],
         "fit_curve_norm": y_fit_norm
     }
@@ -264,14 +253,14 @@ def create_summary_table(results: Dict[str, Dict]):
     """
     Creates and prints a formatted pandas DataFrame summarizing the fit results.
     """
-    param_names = ['δ (Decay)', 'Λ₁ (Engram Drive)', 'Λ₂ (Allergen Drive)', 'κ (Feedback)', 'u₀ (Initial Lesion)', 'Norm. RMSE', 'R²']
-
+    param_names = ['δ (Decay)', 'Λ₁ (Engram Drive)', 'Λ₂ (Allergen Drive)', 'κ (Feedback)', 'u₀ (Initial Lesion)', 'τ (Time Scale)', 'Norm. RMSE', 'R²']
+    
     summary_data = {
         name: data['params'] + data['metrics'] for name, data in results.items()
     }
-
+    
     df = pd.DataFrame(summary_data, index=param_names)
-
+    
     print("\n" + "="*55)
     print("           MODEL FITTING & METRICS SUMMARY")
     print("="*55)
