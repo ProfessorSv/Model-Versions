@@ -5,7 +5,7 @@ from scipy.integrate import solve_ivp
 from scipy.optimize import least_squares
 
 # ——— 1) Load IL-4 data from updated folder ——————————————
-data   = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il4_hdm.csv')
+data   = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\il4_hdm.csv')
 t_data = data['time'].values
 y_data = data['il4'].values
 
@@ -38,35 +38,26 @@ def simulate(p):
                     initial_state, t_eval=t_data)
     return sol.y[1]
 
-# ——— 5) Fit δ & scale S ——————————————————————————————
-def residuals(p):
-    δ, Λ1 = p
+# ——— 5) Fit δ, Λ1, and S (scaling) ——————————————————————————————
+def residuals(params):
+    δ, Λ1, S = params
     ps = params_base.copy()
     ps['delta']   = δ
     ps['Lambda1'] = Λ1
-    return simulate(ps) - y_data
+    return S * simulate(ps) - y_data
 
-#least_squares on that residuals:
-initial_guess = [params_base['delta'], params_base['Lambda1']]
-res = least_squares(residuals,
-                    initial_guess,
-                    bounds=([0,0],[np.inf,np.inf]))
-δ_fit, Λ1_fit = res.x
-print(f"Fitted δ = {δ_fit:.3f}, Λ₁ = {Λ1_fit:.3f}")
-
-# ── New two-parameter least-squares call ──
-initial_guess = [params_base['delta'], params_base['Lambda1']]
+initial_guess = [params_base['delta'], params_base['Lambda1'], 1.0]
 res = least_squares(
-    residuals, 
-    initial_guess, 
-    bounds=([0,0], [np.inf, np.inf])
+    residuals,
+    initial_guess,
+    bounds=([0, 0, 0], [np.inf, np.inf, np.inf])
 )
-δ_fit, Λ1_fit = res.x
-print(f"Fitted δ = {δ_fit:.4f},  Λ₁ = {Λ1_fit:.4f}")
+δ_fit, Λ1_fit, S_fit = res.x
+print(f"Fitted δ = {δ_fit:.4f},  Λ₁ = {Λ1_fit:.4f},  S = {S_fit:.4f}")
 
-# ── Recompute fitted curve using both fitted parameters ──
+# ── Recompute fitted curve using all fitted parameters ──
 p_fitted = {**params_base, 'delta': δ_fit, 'Lambda1': Λ1_fit}
-y_fit = simulate(p_fitted)
+y_fit = S_fit * simulate(p_fitted)
 
 # ——— 6) Compute fitted curve & metrics ————————————————————
 y_fit = S_fit * simulate({**params_base,'delta':δ_fit})

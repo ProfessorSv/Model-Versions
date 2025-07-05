@@ -13,7 +13,7 @@ def load_norm_csv(path, col):
     return t, y_adj/np.max(y_adj)
 
 # 1) Mediator curves
-t_ck,  y_ck  = load_norm_csv(r'data/CXCL1_hdm.csv',  'cxcl1')
+t_ck,  y_ck  = load_norm_csv(r'data/CXCL1_hdm.csv',  'CXCL1')
 t_lm,  y_lm  = load_norm_csv(r'data/ltb4_hdm.csv',    'ltb4')
 f_ck  = lambda t: np.interp(t, t_ck, y_ck)
 f_lm  = lambda t: np.interp(t, t_lm, y_lm)

@@ -189,7 +189,6 @@ ax2.text(0.95, 0.85, f'RMSE = {rmse_fit:.3f}',
 
 # --- Final Touches ---
 plt.tight_layout(rect=[0, 0, 1, 0.96]) # Adjust for suptitle
-plt.savefig("il4_model_fit.png", dpi=300, bbox_inches='tight')
 plt.show()
 
 # --- End of Script ---

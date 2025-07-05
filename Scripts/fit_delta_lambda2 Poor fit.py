@@ -5,7 +5,7 @@ from scipy.integrate import solve_ivp
 from scipy.optimize import least_squares
 
 # ——— 1) Load IL-4 data ——————————————————————————————
-data   = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il4_hdm.csv')
+data   = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\il4_hdm.csv')
 t_data = data['time'].values
 y_data = data['il4'].values
 

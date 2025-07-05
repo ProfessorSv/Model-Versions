@@ -15,8 +15,8 @@ def load_norm_csv(path, col):
     return t, y_adj / np.max(y_adj)
 
 t_cxcl1, y_cxcl1 = load_norm_csv(
-    r'C:\Users\celal\Desktop\Model-Versions\data\CXCL1_hdm.csv',
-    'cxcl1'
+    r'data/CXCL1_hdm.csv',
+    'CXCL1'
 )
 
 def f_cxcl1(t):

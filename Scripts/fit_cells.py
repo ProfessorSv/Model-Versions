@@ -17,8 +17,8 @@ def load_norm_csv(path, col):
 
 # Paths to your mediator CSVs
 t_il5,      y_il5      = load_norm_csv(r'C:\Users\celal\Desktop\Model-Versions\data\il5_hdm.csv',       'il5')
-t_eotaxin,  y_eotaxin  = load_norm_csv(r'C:\Users\celal\Desktop\Model-Versions\data\Eotaxin-1_hdm.csv',  'eotaxin-1')
-t_cxcl1,    y_cxcl1    = load_norm_csv(r'C:\Users\celal\Desktop\Model-Versions\data\CXCL1_hdm.csv',     'cxcl1')
+t_eotaxin,  y_eotaxin  = load_norm_csv(r'C:\Users\celal\Desktop\Model-Versions\data\Eotaxin-1_hdm.csv', 'Eotaxin-1')
+t_cxcl1,    y_cxcl1    = load_norm_csv(r'C:\Users\celal\Desktop\Model-Versions\data\CXCL1_hdm.csv',     'CXCL1')
 
 # Interpolation functions to get mediator levels at any t
 def f_il5(t):     return np.interp(t, t_il5,     y_il5)

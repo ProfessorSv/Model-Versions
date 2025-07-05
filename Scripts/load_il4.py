@@ -1,7 +1,7 @@
 import pandas as pd
 
 # 1. Read the CSV file
-data = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il4_hdm.csv', sep=',', header=0)
+data = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\il4_hdm.csv', sep=',', header=0)
 
 # 2. Print to check it loaded correctly
 print(data)

@@ -7,7 +7,7 @@ from scipy.integrate import solve_ivp
 from scipy.optimize import least_squares
 
 # 1) Load IL-4 data and normalise to peak = 1
-data         = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\il4_hdm.csv')
+data         = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\il4_hdm.csv')
 t_data       = data['time'].values
 y_data       = data['il4'].values
 y_data_norm  = y_data / np.max(y_data)
