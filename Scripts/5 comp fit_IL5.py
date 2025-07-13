@@ -108,7 +108,7 @@ plt.plot(t_data, resid, 'o-')
 plt.axhline(0, linestyle='--', color='gray')
 plt.xlabel('Time (h)')
 plt.ylabel('Residual (model − data)')
-plt.title('Residuals of Normalized Shape Fit')
+plt.title('IL-5 Residuals of Normalized Shape Fit')
 plt.tight_layout(); plt.show()
 
 # 9) Compute and print fit metrics

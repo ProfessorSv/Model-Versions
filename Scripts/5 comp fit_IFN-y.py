@@ -7,7 +7,7 @@ from scipy.integrate import solve_ivp       # ODE solver
 from scipy.optimize import least_squares    # non-linear fitting
 
 # ——— 1) Load & preprocess IFN-γ data ——————————————————————  
-data       = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\IFN-y_hdm.csv') # load your data
+data       = pd.read_csv(r'C:\Users\celal\Desktop\Model-Versions\data\IFN-y_hdm.csv') # load your data
 t_data     = data['time'].values            # [0,2,4,8,24]
 y_raw      = data['IFN-γ'].values            # your extracted IFN-γ values
 y_baseline = y_raw[0]
@@ -111,7 +111,7 @@ plt.plot(t_data, resid, 'o-')
 plt.axhline(0, linestyle='--', color='gray')
 plt.xlabel('Time (h)')
 plt.ylabel('Residual (model − data)')
-plt.title('Residuals of Normalized Shape Fit')
+plt.title('IFN-γ Residuals of Normalized Shape Fit')
 plt.tight_layout(); plt.show()
 
 # 9) Compute and print fit metrics
